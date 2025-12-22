@@ -1,0 +1,77 @@
+services:
+  mongodb:  # --name mongodb
+    image: vinaydocker25/mongo:v1
+    container_name: mongodb
+    volumes:
+    - mongodb:/data/db
+  catalogue:
+    image: vinaydocker25/catalogue:v1
+    container_name: catalogue
+    depends_on:
+    - mongodb
+  redis:
+    image: redis:7.0
+    container_name: redis
+    volumes:
+    - redis:/data
+  mysql:
+    image: vinaydocker25/mysql:v1
+    container_name: mysql
+    volumes:
+    - mysql:/var/lib/mysql
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
+    volumes:
+    - rabbitmq:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: roboshop
+      RABBITMQ_DEFAULT_PASS: roboshop123
+  user:
+    image: vinaydocker25/user:v1
+    container_name: user
+    depends_on:
+    - mongodb
+    - redis  
+  cart: 
+    image: vinaydocker25/cart:v1
+    container_name: cart
+    depends_on: 
+    - redis
+    - catalogue
+  shipping:
+    image: vinaydocker25/shipping:v1
+    container_name: shipping
+    depends_on:
+    - mysql
+    - cart
+  payment:
+    image: vinaydocker25/payment:v1
+    container_name: payment
+    depends_on:  
+    - rabbitmq
+    - cart 
+    - user    
+  frontend:
+    image: vinaydocker25/frontend:v1
+    container_name: frontend
+    ports: 
+    - "80:80"
+    depends_on: 
+    - catalogue
+    - shipping
+    - payment
+    - user
+    - cart      
+
+networks:
+  default:
+    driver: bridge
+    name: roboshop
+    external: false # true if you have created network using docker network command; false if compose creates network
+
+volumes:
+  mongodb: # docker volume create mongodb
+  redis:
+  mysql:
+  rabbitmq:
