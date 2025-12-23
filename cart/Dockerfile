@@ -1,10 +1,24 @@
-FROM node:20
-WORKDIR /opt/server
-EXPOSE 8080
+FROM node:20.19.5-alpine3.22 AS build
+WORKDIR /opt/server   
 COPY package.json .
 COPY *.js .
-RUN npm install
+RUN npm install 
+
+### using multi stage build to optimize the size of the image
+
+FROM node:20.19.5-alpine3.22
+RUN addgroup -S roboshop && adduser -S roboshop -G roboshop
+WORKDIR /opt/server
+RUN chown -R roboshop:roboshop /opt/server
+EXPOSE 8080
+LABEL com.project="roboshop" \
+      component="catalogue" \
+      created_by="vinaydocker25"
 ENV REDIS_HOST="redis" \
     CATALOGUE_HOST="catalogue" \
     CATALOGUE_PORT="8080"
-CMD ["node","server.js"]
+#USER roboshop
+COPY --from=build --chown=roboshop:roboshop /opt/server /opt/server
+USER roboshop
+CMD ["server.js"]
+ENTRYPOINT ["node"]
