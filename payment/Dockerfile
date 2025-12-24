@@ -16,5 +16,5 @@ AMQP_USER="roboshop" \
 AMQP_PASS="roboshop123"
 COPY --from=builder /opt/server /usr/local/bin
 COPY --chown=roboshop:roboshop payment.ini *.py requirements.txt .
-USER roboshop
+# USER roboshop
 CMD ["uwsgi","--ini","payment.ini"]
